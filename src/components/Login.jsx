@@ -1,14 +1,40 @@
 import React, { useRef, useState } from 'react'
 import Header from './Header'
 import { validateSignIn, validateSignUp } from '../utils/validate';
-import { LANDING_PAGE_BG_IMAGE } from '../utils/constants';
+import { LANDING_PAGE_BG_IMAGE, USER_LOGO_URL } from '../utils/constants';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth } from '../utils/firebase';
 
 const Login = () => {
     const [isSignUpForm, setIsSignUpForm] = useState(false);
     const [errors, setErrors] = useState([]);
+
     const email = useRef(null);
     const password = useRef(null);
     const username = useRef(null);
+    const handleSignUp = async () => {
+        const emailValue = email.current?.value;
+        const passwordValue = password.current?.value;
+        try {
+            await createUserWithEmailAndPassword(auth, emailValue, passwordValue);
+            await updateProfile(auth.currentUser, {
+                displayName: username.current?.value,
+                photoURL: USER_LOGO_URL
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    const handleSignIn = async () => {
+        const emailValue = email.current?.value;
+        const passwordValue = password.current?.value;
+        try {
+            await signInWithEmailAndPassword(auth, emailValue, passwordValue);
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
     const handleButtonClick = () => {
         const emailValue = email.current?.value;
         const passwordValue = password.current?.value;
@@ -18,6 +44,7 @@ const Login = () => {
         if (!message.isValid) {
             setErrors(message.errors);
         } else {
+            isSignUpForm ? handleSignUp() : handleSignIn();
             setErrors([]);
         }
         console.log(emailValue, passwordValue, usernameValue);
